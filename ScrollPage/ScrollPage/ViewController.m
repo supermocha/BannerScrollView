@@ -29,6 +29,7 @@
     CGFloat height = 200;
     CGRect rect = CGRectMake((SCREEN_WIDTH / 2) - (width / 2), (SCREEN_HEIGHT / 2) - (height / 2), width, height);
     
+    // views的參數命名感覺會好像是要丟一個裡面都是view的array進去，但無大礙
     BannerScrollView *bannerScrollView = [[BannerScrollView alloc] initWithFrame:rect
                                                                            views:pages
                                                               scrollingDirection:HorizontalScrolling

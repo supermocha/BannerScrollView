@@ -53,7 +53,8 @@
 
 - (void)setPagesWithViews:(NSMutableArray *)views
 {
-    if (!self.pages) {
+    // 一樣使用self.pages == nil來判斷會比較直覺
+    if (self.pages == nil) {
         self.pages = [[NSMutableArray alloc] init];
         for (NSInteger i = 0; i < views.count + 2; i ++) {
             if (i == 0) {
@@ -71,7 +72,7 @@
 
 - (void)setScrollView
 {
-    if (!self.scrollView) {
+    if (self.scrollView == nil) {
         self.scrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
         self.scrollView.pagingEnabled = true;
         self.scrollView.delegate = self;
@@ -107,6 +108,8 @@
         view.userInteractionEnabled = false;
         //設置按鈕
         UIButton *button = [[UIButton alloc] initWithFrame:CGRectMake(i * width, 0, width, height)];
+        
+        // i = 0, tag = -1?
         button.tag = i - 1;
         [button addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
         [button addSubview:view];
@@ -147,7 +150,7 @@
     CGFloat width = self.frame.size.width;
     CGFloat height = self.frame.size.height;
     
-    if (!self.pageControl) {
+    if (self.pageControl == nil) {
         self.pageControl = [[UIPageControl alloc] init];
         
         switch (self.scrollingDirection) {
@@ -163,6 +166,9 @@
             default:
                 break;
         }
+        
+        // page control 如果點擊不能切換頁面的話就將它可以點擊的功能關掉吧
+        self.pageControl.enabled = false;
         
         self.pageControl.currentPage = 0;
         self.pageControl.numberOfPages = self.numberOfPages;
