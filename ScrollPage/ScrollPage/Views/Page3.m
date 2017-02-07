@@ -17,8 +17,6 @@
 - (void)awakeFromNib
 {
     [super awakeFromNib];
-    
-    self.frame = [UIScreen mainScreen].bounds;
 }
 
 @end

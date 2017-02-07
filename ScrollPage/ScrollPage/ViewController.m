@@ -25,13 +25,12 @@
     //store class name of view in pages
     NSMutableArray *pages = [NSMutableArray arrayWithArray:@[@"Page0", @"Page1", @"Page2", @"Page3"]];
     
-    CGFloat width = 200;
-    CGFloat height = 200;
+    CGFloat width = SCREEN_WIDTH;
+    CGFloat height = SCREEN_HEIGHT;
     CGRect rect = CGRectMake((SCREEN_WIDTH / 2) - (width / 2), (SCREEN_HEIGHT / 2) - (height / 2), width, height);
-    
-    // views的參數命名感覺會好像是要丟一個裡面都是view的array進去，但無大礙
+
     BannerScrollView *bannerScrollView = [[BannerScrollView alloc] initWithFrame:rect
-                                                                           views:pages
+                                                                classNamesOfView:pages
                                                               scrollingDirection:HorizontalScrolling
                                                                   andPageControl:true];
     bannerScrollView.delgate = self;

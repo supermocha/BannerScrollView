@@ -27,15 +27,15 @@
 
 @implementation BannerScrollView
 
-- (instancetype)initWithFrame:(CGRect)frame views:(NSMutableArray *)views scrollingDirection:(ScrollingDirection)direction andPageControl:(BOOL)hasPageControl
+- (instancetype)initWithFrame:(CGRect)frame classNamesOfView:(NSMutableArray *)classNamesOfView scrollingDirection:(ScrollingDirection)direction andPageControl:(BOOL)hasPageControl
 {
     self = [super initWithFrame:frame];
     
     if (self) {
-        self.numberOfPages = views.count;
+        self.numberOfPages = classNamesOfView.count;
         self.hasPageControl = hasPageControl;
         self.scrollingDirection = direction;
-        [self setPagesWithViews:views];
+        [self setPagesWithViews:classNamesOfView frame:frame];
         [self setScrollView];
         if (self.hasPageControl) {
             [self setPageControl];
@@ -45,26 +45,26 @@
     return self;
 }
 
-- (id)viewFromNibNamed:(NSString *)nibName owner:(id)owner
+- (id)viewFromNibNamed:(NSString *)nibName owner:(id)owner frame:(CGRect)frame
 {
     NSArray *nibView = [[NSBundle mainBundle] loadNibNamed:nibName owner:owner options:nil];
+    [[nibView firstObject] setFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
     return [nibView firstObject];
 }
 
-- (void)setPagesWithViews:(NSMutableArray *)views
+- (void)setPagesWithViews:(NSMutableArray *)views frame:(CGRect)frame
 {
-    // 一樣使用self.pages == nil來判斷會比較直覺
     if (self.pages == nil) {
         self.pages = [[NSMutableArray alloc] init];
         for (NSInteger i = 0; i < views.count + 2; i ++) {
             if (i == 0) {
-                [self.pages addObject:[self viewFromNibNamed:views.lastObject owner:nil]];
+                [self.pages addObject:[self viewFromNibNamed:views.lastObject owner:nil frame:frame]];
             }
             else if (i == views.count + 1) {
-                [self.pages addObject:[self viewFromNibNamed:views.firstObject owner:nil]];
+                [self.pages addObject:[self viewFromNibNamed:views.firstObject owner:nil frame:frame]];
             }
             else {
-                [self.pages addObject:[self viewFromNibNamed:[views objectAtIndex:i - 1] owner:nil]];
+                [self.pages addObject:[self viewFromNibNamed:[views objectAtIndex:i - 1] owner:nil frame:frame]];
             }
         }
     }
@@ -109,7 +109,6 @@
         //設置按鈕
         UIButton *button = [[UIButton alloc] initWithFrame:CGRectMake(i * width, 0, width, height)];
         
-        // i = 0, tag = -1?
         button.tag = i - 1;
         [button addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
         [button addSubview:view];
@@ -167,11 +166,10 @@
                 break;
         }
         
-        // page control 如果點擊不能切換頁面的話就將它可以點擊的功能關掉吧
-        self.pageControl.enabled = false;
-        
         self.pageControl.currentPage = 0;
         self.pageControl.numberOfPages = self.numberOfPages;
+        //關閉pageControl的點擊功能
+        self.pageControl.enabled = false;
         [self addSubview:self.pageControl];
     }
 }
