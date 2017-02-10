@@ -9,102 +9,128 @@
 #import "BannerScrollView.h"
 
 @interface BannerScrollView () <UIScrollViewDelegate>
-
-@property (nonatomic, assign) ScrollingDirection scrollingDirection;
+{
+    ScrollingDirection scrollingDirection;
+    NSInteger numberOfPages; //page0 - page1 - page2 - page3
+    BOOL hasPageControl;
+}
+@property (nonatomic, strong) NSMutableArray *pages; //lastPage - page0 - page1 - page2 - page3 - firstPage
 @property (nonatomic, strong) UIScrollView *scrollView;
 @property (nonatomic, strong) UIPageControl *pageControl;
-/*
- lastPage - page0 - page1 - page2 - page3 - firstPage
- */
-@property (nonatomic, strong) NSMutableArray *pages;
-/*
- page0 - page1 - page2 - page3
- */
-@property (nonatomic, assign) NSInteger numberOfPages;
-@property (nonatomic, assign) BOOL hasPageControl;
-
 @end
 
 @implementation BannerScrollView
 
-- (instancetype)initWithFrame:(CGRect)frame classNamesOfView:(NSMutableArray *)classNamesOfView scrollingDirection:(ScrollingDirection)direction andPageControl:(BOOL)hasPageControl
+- (instancetype)initWithFrame:(CGRect)frame classNamesOfView:(NSMutableArray *)classNamesOfView scrollingDirection:(ScrollingDirection)direction andPageControl:(BOOL)bl
 {
     self = [super initWithFrame:frame];
-    
     if (self) {
-        self.numberOfPages = classNamesOfView.count;
-        self.hasPageControl = hasPageControl;
-        self.scrollingDirection = direction;
-        [self setPagesWithViews:classNamesOfView frame:frame];
-        [self setScrollView];
-        if (self.hasPageControl) {
-            [self setPageControl];
+        numberOfPages = classNamesOfView.count;
+        hasPageControl = bl;
+        scrollingDirection = direction;
+        [self setPages:classNamesOfView];
+        [self addSubview:self.scrollView];
+        if (hasPageControl) {
+            [self addSubview:self.pageControl];
         }
     }
-    
     return self;
 }
 
-- (id)viewFromNibNamed:(NSString *)nibName owner:(id)owner frame:(CGRect)frame
-{
-    NSArray *nibView = [[NSBundle mainBundle] loadNibNamed:nibName owner:owner options:nil];
-    [[nibView firstObject] setFrame:CGRectMake(0, 0, frame.size.width, frame.size.height)];
-    return [nibView firstObject];
-}
+#pragma mark - Setter
 
-- (void)setPagesWithViews:(NSMutableArray *)views frame:(CGRect)frame
+- (UIScrollView *)scrollView
 {
-    if (self.pages == nil) {
-        self.pages = [[NSMutableArray alloc] init];
-        for (NSInteger i = 0; i < views.count + 2; i ++) {
-            if (i == 0) {
-                [self.pages addObject:[self viewFromNibNamed:views.lastObject owner:nil frame:frame]];
-            }
-            else if (i == views.count + 1) {
-                [self.pages addObject:[self viewFromNibNamed:views.firstObject owner:nil frame:frame]];
-            }
-            else {
-                [self.pages addObject:[self viewFromNibNamed:[views objectAtIndex:i - 1] owner:nil frame:frame]];
-            }
-        }
-    }
-}
-
-- (void)setScrollView
-{
-    if (self.scrollView == nil) {
-        self.scrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
-        self.scrollView.pagingEnabled = true;
-        self.scrollView.delegate = self;
-        self.scrollView.showsHorizontalScrollIndicator = false;
-        self.scrollView.showsVerticalScrollIndicator = false;
-        [self addSubview:self.scrollView];
+    if (_scrollView == nil) {
+        _scrollView = [[UIScrollView alloc] initWithFrame:self.bounds];
+        _scrollView.pagingEnabled = true;
+        _scrollView.delegate = self;
+        _scrollView.showsHorizontalScrollIndicator = false;
+        _scrollView.showsVerticalScrollIndicator = false;
         
-        switch (self.scrollingDirection) {
+        switch (scrollingDirection) {
             case HorizontalScrolling:
-                [self setHorizontalScrollView];
+                _scrollView = [self setHorizontalScrollView];
                 break;
                 
             case VeritcalScrolling:
-                [self setVerticalScrollView];
+                _scrollView = [self setVerticalScrollView];
                 break;
                 
             default:
                 break;
         }
     }
+    return _scrollView;
 }
 
-- (void)setHorizontalScrollView
+- (void)setPages:(NSMutableArray *)views
+{
+    if (_pages == nil) {
+        _pages = [[NSMutableArray alloc] init];
+        for (NSInteger i = 0; i < views.count + 2; i ++) {
+            if (i == 0) {
+                [_pages addObject:[self loadNibWithName:views.lastObject]];
+            }
+            else if (i == views.count + 1) {
+                [_pages addObject:[self loadNibWithName:views.firstObject]];
+            }
+            else {
+                [_pages addObject:[self loadNibWithName:[views objectAtIndex:i - 1]]];
+            }
+        }
+    }
+}
+
+- (UIPageControl *)pageControl
 {
     CGFloat width = self.frame.size.width;
     CGFloat height = self.frame.size.height;
     
-    self.scrollView.contentSize = CGSizeMake(width * self.pages.count, height);
+    if (_pageControl == nil) {
+        _pageControl = [[UIPageControl alloc] init];
+        
+        switch (scrollingDirection) {
+            case HorizontalScrolling:
+                _pageControl.frame = CGRectMake(0, height - 30, width, 20);
+                break;
+                
+            case VeritcalScrolling:
+                _pageControl.frame = CGRectMake(30, 0, 20, height);
+                _pageControl.transform = CGAffineTransformMakeRotation(M_PI_2);
+                break;
+                
+            default:
+                break;
+        }
+        
+        _pageControl.currentPage = 0;
+        _pageControl.numberOfPages = numberOfPages;
+        //關閉pageControl的點擊功能
+        _pageControl.enabled = false;
+    }
+    return _pageControl;
+}
+
+#pragma mark - Private
+
+- (id)loadNibWithName:(NSString *)nibName
+{
+    NSArray *nibView = [[NSBundle mainBundle] loadNibNamed:nibName owner:nil options:nil];
+    [[nibView firstObject] setFrame:CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame))];
+    return [nibView firstObject];
+}
+
+- (UIScrollView *)setHorizontalScrollView
+{
+    CGFloat width = self.frame.size.width;
+    CGFloat height = self.frame.size.height;
+    
+    _scrollView.contentSize = CGSizeMake(width * _pages.count, height);
     
     //循環添加view
-    for (NSInteger i = 0; i < self.pages.count; i ++) {
-        UIView *view = [self.pages objectAtIndex:i];
+    for (NSInteger i = 0; i < _pages.count; i ++) {
+        UIView *view = [_pages objectAtIndex:i];
         view.userInteractionEnabled = false;
         //設置按鈕
         UIButton *button = [[UIButton alloc] initWithFrame:CGRectMake(i * width, 0, width, height)];
@@ -113,23 +139,24 @@
         [button addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
         [button addSubview:view];
         //添加view到scrollView上
-        [self.scrollView addSubview:button];
+        [_scrollView addSubview:button];
     }
     
     //設置初始滾動的位置為第二個view
-    self.scrollView.contentOffset = CGPointMake(width, 0);
+    _scrollView.contentOffset = CGPointMake(width, 0);
+    return _scrollView;
 }
 
-- (void)setVerticalScrollView
+- (UIScrollView *)setVerticalScrollView
 {
     CGFloat width = self.frame.size.width;
     CGFloat height = self.frame.size.height;
     
-    self.scrollView.contentSize = CGSizeMake(width, height * self.pages.count);
+    _scrollView.contentSize = CGSizeMake(width, height * _pages.count);
     
     //循環添加view
-    for (NSInteger i = 0; i < self.pages.count; i ++) {
-        UIView *view = [self.pages objectAtIndex:i];
+    for (NSInteger i = 0; i < _pages.count; i ++) {
+        UIView *view = [_pages objectAtIndex:i];
         view.userInteractionEnabled = false;
         //設置按鈕
         UIButton *button = [[UIButton alloc] initWithFrame:CGRectMake(0, i * height, width, height)];
@@ -137,41 +164,12 @@
         [button addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
         [button addSubview:view];
         //添加view到scrollView上
-        [self.scrollView addSubview:button];
+        [_scrollView addSubview:button];
     }
     
     //設置初始滾動的位置為第二個view
-    self.scrollView.contentOffset = CGPointMake(0, height);
-}
-
-- (void)setPageControl
-{
-    CGFloat width = self.frame.size.width;
-    CGFloat height = self.frame.size.height;
-    
-    if (self.pageControl == nil) {
-        self.pageControl = [[UIPageControl alloc] init];
-        
-        switch (self.scrollingDirection) {
-            case HorizontalScrolling:
-                self.pageControl.frame = CGRectMake(0, height - 30, width, 20);
-                break;
-                
-            case VeritcalScrolling:
-                self.pageControl.frame = CGRectMake(30, 0, 20, height);
-                self.pageControl.transform = CGAffineTransformMakeRotation(M_PI_2);
-                break;
-                
-            default:
-                break;
-        }
-        
-        self.pageControl.currentPage = 0;
-        self.pageControl.numberOfPages = self.numberOfPages;
-        //關閉pageControl的點擊功能
-        self.pageControl.enabled = false;
-        [self addSubview:self.pageControl];
-    }
+    _scrollView.contentOffset = CGPointMake(0, height);
+    return _scrollView;
 }
 
 #pragma mark - BannerScrollViewDelegate
@@ -192,26 +190,26 @@
     CGFloat width = scrollView.frame.size.width;
     CGFloat height = scrollView.frame.size.height;
     
-    switch (self.scrollingDirection) {
+    switch (scrollingDirection) {
         case HorizontalScrolling:
             //當滾動到最後的時候
-            if (point.x / width > self.numberOfPages) {
+            if (point.x / width > numberOfPages) {
                 [scrollView setContentOffset:CGPointMake(width, 0) animated:false];
             }
             //當滾動到最前的時候
             else if (point.x / width < 1) {
-                [scrollView setContentOffset:CGPointMake(width * self.numberOfPages, 0) animated:false];
+                [scrollView setContentOffset:CGPointMake(width * numberOfPages, 0) animated:false];
             }
             break;
             
         case VeritcalScrolling:
             //當滾動到最後的時候
-            if (point.y / height > self.numberOfPages) {
+            if (point.y / height > numberOfPages) {
                 [scrollView setContentOffset:CGPointMake(0, height) animated:false];
             }
             //當滾動到最前的時候
             else if (point.y / height < 1) {
-                [scrollView setContentOffset:CGPointMake(0, height * self.numberOfPages) animated:false];
+                [scrollView setContentOffset:CGPointMake(0, height * numberOfPages) animated:false];
             }
             break;
             
@@ -223,17 +221,17 @@
 //一邊滾動一邊設置pageControl的currentPage
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-    if (self.hasPageControl) {
+    if (hasPageControl) {
         CGPoint point = scrollView.contentOffset;
         CGFloat width = scrollView.frame.size.width;
         CGFloat height = scrollView.frame.size.height;
         NSInteger currentPage;
         
-        switch (self.scrollingDirection) {
+        switch (scrollingDirection) {
             case HorizontalScrolling:
                 //當滾動到最後的時候
-                if (point.x / width > self.numberOfPages) {
-                    currentPage = self.pages.count - 1;
+                if (point.x / width > numberOfPages) {
+                    currentPage = _pages.count - 1;
                 }
                 //當滾動到最前的時候
                 else if (point.x / width < 1) {
@@ -246,8 +244,8 @@
                 
             case VeritcalScrolling:
                 //當滾動到最後的時候
-                if (point.y / height > self.pages.count) {
-                    currentPage = self.pages.count - 1;
+                if (point.y / height > _pages.count) {
+                    currentPage = _pages.count - 1;
                 }
                 //當滾動到最前的時候
                 else if (point.y / height < 1) {
@@ -262,7 +260,7 @@
                 break;
         }
         
-        [self.pageControl setCurrentPage:currentPage];
+        [_pageControl setCurrentPage:currentPage];
     }
 }
 
