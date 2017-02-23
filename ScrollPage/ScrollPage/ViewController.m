@@ -33,7 +33,7 @@
                                                                 classNamesOfView:pages
                                                               scrollingDirection:HorizontalScrolling
                                                                   andPageControl:true];
-    bannerScrollView.delgate = self;
+    bannerScrollView.delegate = self;
     [self.view addSubview:bannerScrollView];
 }
 

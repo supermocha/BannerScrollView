@@ -118,7 +118,6 @@
         view.userInteractionEnabled = false;
         //設置按鈕
         UIButton *button = [[UIButton alloc] initWithFrame:CGRectMake(i * width, 0, width, height)];
-        
         button.tag = i - 1;
         [button addTarget:self action:@selector(buttonPressed:) forControlEvents:UIControlEventTouchUpInside];
         [button addSubview:view];
@@ -156,17 +155,17 @@
 
 - (id)loadNibWithName:(NSString *)nibName
 {
-    NSArray *nibView = [[NSBundle mainBundle] loadNibNamed:nibName owner:nil options:nil];
-    [[nibView firstObject] setFrame:CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame))];
-    return [nibView firstObject];
+    NSArray *nibArray = [[NSBundle mainBundle] loadNibNamed:nibName owner:nil options:nil];
+    [[nibArray firstObject] setFrame:CGRectMake(0, 0, CGRectGetWidth(self.frame), CGRectGetHeight(self.frame))];
+    return [nibArray firstObject];
 }
 
 #pragma mark - BannerScrollViewDelegate
 
 - (void)buttonPressed:(UIButton *)sender
 {
-    if ([self.delgate respondsToSelector:@selector(bannerScrollViewDidSelectViewAtIndex:)]) {
-        [self.delgate bannerScrollViewDidSelectViewAtIndex:sender.tag];
+    if ([self.delegate respondsToSelector:@selector(bannerScrollViewDidSelectViewAtIndex:)]) {
+        [self.delegate bannerScrollViewDidSelectViewAtIndex:sender.tag];
     }
 }
 

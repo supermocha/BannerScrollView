@@ -23,7 +23,7 @@ typedef NS_ENUM(NSInteger, ScrollingDirection)
 
 @interface BannerScrollView : UIView
 
-@property (nonatomic, weak) id<BannerScrollViewDelegate> delgate;
+@property (nonatomic, weak) id<BannerScrollViewDelegate> delegate;
 
 - (instancetype)initWithFrame:(CGRect)frame classNamesOfView:(NSMutableArray *)classNamesOfView scrollingDirection:(ScrollingDirection)direction andPageControl:(BOOL)hasPageControl;
 
